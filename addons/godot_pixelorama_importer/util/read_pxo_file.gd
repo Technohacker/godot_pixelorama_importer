@@ -1,34 +1,11 @@
-tool
-extends EditorImportPlugin
+extends Node
 
-func get_importer_name():
-	return "com.technohacker.pixelorama"
+const Result = preload("./Result.gd")
 
-func get_visible_name():
-	return "Pixelorama Project"
+static func read_pxo_file(source_file: String, image_save_path: String):
+	var result = Result.new()
 
-func get_recognized_extensions():
-	return ["pxo"]
-
-# We save directly to stex because ImageTexture doesn't work for some reason
-func get_save_extension():
-	return "stex"
-
-func get_resource_type():
-	return "StreamTexture"
-
-func get_import_options(preset):
-	return []
-
-func get_preset_count():
-	return 0
-
-func import(source_file, save_path, options, r_platform_variants, r_gen_files):
-	"""
-	Main import function. Reads the Pixelorama project and extracts the PNG image from it
-	"""
-	
-	# Open the Piskel project file
+	# Open the Pixelorama project file
 	var file = File.new()
 	var err = file.open_compressed(source_file, File.READ, File.COMPRESSION_ZSTD)
 	if err != OK:
@@ -40,14 +17,16 @@ func import(source_file, save_path, options, r_platform_variants, r_gen_files):
 
 	if json.error != OK:
 		printerr("JSON Parse Error")
-		return json.error
+		result.error = json.error
+		return result
 
 	var project = json.result;
 
 	# Make sure it's a JSON Object
 	if typeof(project) != TYPE_DICTIONARY:
-		printerr("Invalid Piskel project file")
-		return ERR_FILE_UNRECOGNIZED;
+		printerr("Invalid Pixelorama project file")
+		result.error = ERR_FILE_UNRECOGNIZED;
+		return result;
 
 	# Load the cel dimensions and frame count
 	var size = Vector2(project.size_x, project.size_y)
@@ -59,7 +38,7 @@ func import(source_file, save_path, options, r_platform_variants, r_gen_files):
 
 	for i in range(project.frames.size()):
 		var frame = project.frames[i]
-		
+
 		# Prepare the frame image
 		var frame_img: Image = null
 		for cel in frame.cels:
@@ -76,13 +55,14 @@ func import(source_file, save_path, options, r_platform_variants, r_gen_files):
 		# Add to the spritesheet
 		spritesheet.blit_rect(frame_img, Rect2(Vector2.ZERO, size), Vector2((size.x * i), 0))
 
-	if err:
-		return err
+	save_stex(spritesheet, image_save_path)
+	result.value = project
+	result.error = OK
 
-	return save_stex(spritesheet, save_path)
+	return result
 
 # Taken from https://github.com/lifelike/godot-animator-import
-func save_stex(image, save_path):
+static func save_stex(image, save_path):
 	var tmppng = "%s-tmp.png" % [save_path]
 	image.save_png(tmppng)
 	var pngf = File.new()
@@ -110,3 +90,7 @@ func save_stex(image, save_path):
 	stexf.store_8(0x20) # space
 	stexf.store_buffer(pngdata)
 	stexf.close()
+
+	print("stex saved")
+
+	return OK

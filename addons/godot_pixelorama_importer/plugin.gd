@@ -2,7 +2,9 @@ tool
 extends EditorPlugin
 
 var import_plugins
+
 var open_plugin
+
 
 func _enter_tree():
 	import_plugins = [

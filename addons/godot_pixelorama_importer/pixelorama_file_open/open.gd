@@ -1,9 +1,12 @@
 extends EditorInspectorPlugin
 
-var tex:StreamTexture
+var tex
 var user_config_req:bool = true
 var pixel_path:String
-
+var supported_filetypes = [
+	StreamTexture,
+	SpriteFrames
+]
 var ctl
 
 func _init():
@@ -21,9 +24,10 @@ func _init():
 		print("Error loading Plugin \n", err)
 
 func can_handle(object):
-	if object is StreamTexture:
-		tex = object
-		return true
+	for type in supported_filetypes:
+		if object is type:
+			tex = object
+			return true
 	return false
 
 func parse_end():

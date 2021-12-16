@@ -3,37 +3,45 @@ extends EditorImportPlugin
 
 var editor: EditorInterface
 
+
 func _init(editor_interface):
 	editor = editor_interface
+
 
 func get_importer_name():
 	return "com.technohacker.pixelorama.spriteframe"
 
+
 func get_visible_name():
 	return "SpriteFrames"
 
+
 func get_recognized_extensions():
 	return ["pxo"]
+
 
 # We save directly to stex because ImageTexture doesn't work for some reason
 func get_save_extension():
 	return "tres"
 
+
 func get_resource_type():
 	return "SpriteFrames"
 
-func get_import_options(preset):
-	return [
-		{"name": "animation_fps", "default_value": 6}
-	]
 
-func get_option_visibility(option, options):
+func get_import_options(_preset):
+	return [{"name": "animation_fps", "default_value": 6}]
+
+
+func get_option_visibility(_option, _options):
 	return true
+
 
 func get_preset_count():
 	return 0
 
-func import(source_file, save_path, options, r_platform_variants, r_gen_files):
+
+func import(source_file, save_path, options, _r_platform_variants, r_gen_files):
 	"""
 	Main import function. Reads the Pixelorama project and creates the SpriteFrames resource
 	"""
@@ -63,11 +71,7 @@ func import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	var frames = SpriteFrames.new()
 	if project.tags.size() == 0:
 		# No tags, put all in default
-		project.tags.append({
-			"name": "default",
-			"from": 1,
-			"to": project.frames.size()
-		})
+		project.tags.append({"name": "default", "from": 1, "to": project.frames.size()})
 	else:
 		# Has tags, delete the default
 		frames.remove_animation("default")

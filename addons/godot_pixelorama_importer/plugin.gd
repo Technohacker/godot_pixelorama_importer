@@ -5,6 +5,7 @@ var editor_settings := get_editor_interface().get_editor_settings()
 
 var import_plugins
 
+
 func handles(object: Object) -> bool:
 	# Find .pxo files
 	if object is Resource && (object as Resource).resource_path.ends_with(".pxo"):
@@ -12,19 +13,21 @@ func handles(object: Object) -> bool:
 
 	return false
 
+
 func edit(object: Object) -> void:
 	# Safeguard
 	if object is Resource && (object as Resource).resource_path.ends_with(".pxo"):
 		if editor_settings.get_setting("pixelorama/path") == "":
 			var popup = AcceptDialog.new()
 			popup.window_title = "No Pixelorama Binary found!"
+			# gdlint: ignore=max-line-length
 			popup.dialog_text = "Specify the path to the binary in the Editor Settings (Editor > Editor Settings...) under Pixelorama > Path"
 			popup.popup_exclusive = true
 			popup.set_as_minsize()
 
 			get_editor_interface().get_base_control().add_child(popup)
 			popup.popup_centered_minsize()
-			
+
 			yield(popup, "confirmed")
 			popup.queue_free()
 			return
@@ -40,12 +43,13 @@ func edit(object: Object) -> void:
 
 		OS.execute(path, [ProjectSettings.globalize_path(object.resource_path)], false)
 
+
 func _enter_tree() -> void:
 	var property_info = {
 		"name": "pixelorama/path",
 		"type": TYPE_STRING,
 	}
-	
+
 	# Set some sane default paths for each OS and their File Selectors
 	match OS.get_name():
 		"Windows":
@@ -70,6 +74,7 @@ func _enter_tree() -> void:
 	]
 	for plugin in import_plugins:
 		add_import_plugin(plugin)
+
 
 func _exit_tree() -> void:
 	for plugin in import_plugins:

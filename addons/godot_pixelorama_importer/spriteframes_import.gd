@@ -81,10 +81,12 @@ func import(source_file, save_path, options, _r_platform_variants, r_gen_files):
 		frames.set_animation_speed(tag.name, options.animation_fps)
 
 		for frame in range(tag.from, tag.to + 1):
-			var atlas = AtlasTexture.new()
-			atlas.atlas = spritesheet_tex
-			atlas.region = Rect2(Vector2((frame - 1) * frame_size.x, 0), frame_size)
-			frames.add_frame(tag.name, atlas)
+			var image_rect := Rect2(Vector2((frame - 1) * frame_size.x, 0), frame_size)
+			var image := Image.new()
+			image = spritesheet_tex.get_data().get_rect(image_rect)
+			var image_texture := ImageTexture.new()
+			image_texture.create_from_image(image, 0)
+			frames.add_frame(tag.name, image_texture)
 
 	var err = ResourceSaver.save("%s.%s" % [save_path, get_save_extension()], frames)
 

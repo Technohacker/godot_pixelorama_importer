@@ -7,21 +7,21 @@ static func read_pxo_file(source_file: String, image_save_path: String):
 	var result = Result.new()
 
 	# Open the Pixelorama project file
-	var file = File.new()
-	var err = file.open_compressed(source_file, File.READ, File.COMPRESSION_ZSTD)
-	if err != OK:
-		file.open(source_file, File.READ)
+	var file = FileAccess.open_compressed(source_file, FileAccess.READ, FileAccess.COMPRESSION_ZSTD)
+	if FileAccess.get_open_error() != OK:
+		file = FileAccess.open(source_file, FileAccess.READ)
 
 	# Parse it as JSON
 	var text = file.get_line()
-	var json = JSON.parse(text)
+	var test_json_conv = JSON.new()
+	var json_error = test_json_conv.parse(text)
 
-	if json.error != OK:
+	if json_error != OK:
 		printerr("JSON Parse Error")
-		result.error = json.error
+		result.error = json_error
 		return result
 
-	var project = json.result
+	var project = test_json_conv.get_data()
 
 	# Make sure it's a JSON Object
 	if typeof(project) != TYPE_DICTIONARY:
@@ -34,8 +34,7 @@ static func read_pxo_file(source_file: String, image_save_path: String):
 	var frame_count = project.frames.size()
 
 	# Prepare the spritesheet image
-	var spritesheet = Image.new()
-	spritesheet.create(size.x * frame_count, size.y, false, Image.FORMAT_RGBA8)
+	var spritesheet = Image.create(size.x * frame_count, size.y, false, Image.FORMAT_RGBA8)
 
 	var cel_data_size: int = size.x * size.y * 4
 
@@ -50,19 +49,19 @@ static func read_pxo_file(source_file: String, image_save_path: String):
 
 			if project.layers[layer].visible and opacity > 0.0:
 				# Load the cel image
-				var cel_img := Image.new()
-				cel_img.create_from_data(
-					size.x, size.y, false, Image.FORMAT_RGBA8, file.get_buffer(cel_data_size)
+				var cel_img = (
+					Image
+					. create_from_data(
+						size.x, size.y, false, Image.FORMAT_RGBA8, file.get_buffer(cel_data_size)
+					)
 				)
 
 				if opacity < 1.0:
-					cel_img.lock()
 					for x in range(size.x):
 						for y in range(size.y):
 							var color := cel_img.get_pixel(x, y)
 							color.a *= opacity
 							cel_img.set_pixel(x, y, color)
-					cel_img.unlock()
 
 				if frame_img == null:
 					frame_img = cel_img
@@ -79,43 +78,49 @@ static func read_pxo_file(source_file: String, image_save_path: String):
 			# Add to the spritesheet
 			spritesheet.blit_rect(frame_img, Rect2(Vector2.ZERO, size), Vector2(size.x * i, 0))
 
-	save_stex(spritesheet, image_save_path)
+	save_ctex(spritesheet, image_save_path)
 	result.value = project
 	result.error = OK
 
 	return result
 
 
-# Taken from https://github.com/lifelike/godot-animator-import
-static func save_stex(image, save_path):
-	var tmppng = "%s-tmp.png" % [save_path]
-	image.save_png(tmppng)
-	var pngf = File.new()
-	pngf.open(tmppng, File.READ)
-	var pnglen = pngf.get_len()
-	var pngdata = pngf.get_buffer(pnglen)
-	pngf.close()
-	Directory.new().remove(tmppng)
+# Based on CompressedTexture2D::_load_data from
+# https://github.com/godotengine/godot/blob/master/scene/resources/texture.cpp
+static func save_ctex(image, save_path: String):
+	var tmpwebp = "%s-tmp.webp" % [save_path]
+	image.save_webp(tmpwebp)  # not quite sure, but the png import that I tested was in webp
 
-	var stexf = File.new()
-	stexf.open("%s.stex" % [save_path], File.WRITE)
-	stexf.store_8(0x47)  # G
-	stexf.store_8(0x44)  # D
-	stexf.store_8(0x53)  # S
-	stexf.store_8(0x54)  # T
-	stexf.store_32(image.get_width())
-	stexf.store_32(image.get_height())
-	stexf.store_32(0)  # flags: Disable all of it as we're dealing with pixel-perfect images
-	stexf.store_32(0x07100000)  # data format
-	stexf.store_32(1)  # nr mipmaps
-	stexf.store_32(pnglen + 6)
-	stexf.store_8(0x50)  # P
-	stexf.store_8(0x4e)  # N
-	stexf.store_8(0x47)  # G
-	stexf.store_8(0x20)  # space
-	stexf.store_buffer(pngdata)
-	stexf.close()
+	var webpf = FileAccess.open(tmpwebp, FileAccess.READ)
+	var webplen = webpf.get_length()
+	var webpdata = webpf.get_buffer(webplen)
+	webpf = null  # setting null will close the file
 
-	print("stex saved")
+	var dir := DirAccess.open(tmpwebp.get_base_dir())
+	dir.remove(tmpwebp.get_file())
+
+	var ctexf = FileAccess.open("%s.ctex" % [save_path], FileAccess.WRITE)
+	ctexf.store_8(0x47)  # G
+	ctexf.store_8(0x53)  # S
+	ctexf.store_8(0x54)  # T
+	ctexf.store_8(0x32)  # 2
+	ctexf.store_32(0x01)  # FORMAT_VERSION
+	ctexf.store_32(image.get_width())
+	ctexf.store_32(image.get_height())
+	ctexf.store_32(0xD000000)  # data format (?)
+	ctexf.store_32(0xFFFFFFFF)  # mipmap_limit
+	ctexf.store_32(0x0)  # reserved
+	ctexf.store_32(0x0)  # reserved
+	ctexf.store_32(0x0)  # reserved
+	ctexf.store_32(0x02)  # data format (WEBP, it's DataFormat enum but not available in gdscript)
+	ctexf.store_16(image.get_width())  # w
+	ctexf.store_16(image.get_height())  # h
+	ctexf.store_32(0x00)  # mipmaps
+	ctexf.store_32(Image.FORMAT_RGBA8)  # format
+	ctexf.store_32(webplen)  # webp length
+	ctexf.store_buffer(webpdata)
+	ctexf = null  # setting null will close the file
+
+	print("ctex saved")
 
 	return OK

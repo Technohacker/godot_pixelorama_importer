@@ -68,9 +68,42 @@ func _enter_tree() -> void:
 
 	editor_settings.add_property_info(property_info)
 
+	var property_infos = [
+		{
+			"default": Vector2.ONE,
+			"property_info":
+			{
+				"name": "pixelorama/default_scale",
+				"type": TYPE_VECTOR2,
+			}
+		},
+		{
+			"default": false,
+			"property_info":
+			{
+				"name": "pixelorama/default_external_save",
+				"type": TYPE_BOOL,
+			}
+		},
+		{
+			"default": "",
+			"property_info":
+			{
+				"name": "pixelorama/default_external_save_path",
+				"type": TYPE_STRING,
+				"hint": PROPERTY_HINT_DIR
+			}
+		}
+	]
+	for pi in property_infos:
+		if !ProjectSettings.has_setting(pi.property_info.name):
+			ProjectSettings.set_setting(pi.property_info.name, pi.default)
+		ProjectSettings.add_property_info(pi.property_info)
+
 	import_plugins = [
 		preload("single_image_import.gd").new(),
-		preload("spriteframes_import.gd").new(get_editor_interface())
+		preload("spriteframes_import.gd").new(get_editor_interface()),
+		preload("animation_player_import.gd").new(get_editor_interface())
 	]
 	for plugin in import_plugins:
 		add_import_plugin(plugin)

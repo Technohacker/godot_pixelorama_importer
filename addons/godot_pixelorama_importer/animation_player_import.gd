@@ -1,6 +1,8 @@
 tool
 extends EditorImportPlugin
 
+const VISIBLE_NAME := "Sprite & AnimationPlayer"
+
 var editor: EditorInterface
 
 
@@ -13,7 +15,7 @@ func get_importer_name():
 
 
 func get_visible_name():
-	return "Sprite & AnimationPlayer"
+	return VISIBLE_NAME
 
 
 func get_recognized_extensions():
@@ -32,10 +34,10 @@ func get_resource_type():
 func get_import_options(_preset):
 	var default_scale: Vector2 = ProjectSettings.get_setting("pixelorama/default_scale")
 	var default_external_save: bool = ProjectSettings.get_setting(
-		"pixelorama/default_external_save"
+		"pixelorama/default_animation_external_save"
 	)
 	var default_external_save_path: String = ProjectSettings.get_setting(
-		"pixelorama/default_external_save_path"
+		"pixelorama/default_animation_external_save_path"
 	)
 
 	return [
@@ -64,6 +66,13 @@ func get_option_visibility(option, options):
 
 func get_preset_count():
 	return 0
+
+
+func get_priority() -> float:
+	var default_import_type: String = ProjectSettings.get_setting("pixelorama/default_import_type")
+	if default_import_type == get_visible_name():
+		return 2.0
+	return 1.0
 
 
 func import(source_file, save_path, options, _r_platform_variants, gen_files):

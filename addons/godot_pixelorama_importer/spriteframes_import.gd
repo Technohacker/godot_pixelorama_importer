@@ -1,6 +1,8 @@
 tool
 extends EditorImportPlugin
 
+const VISIBLE_NAME := "SpriteFrames"
+
 var editor: EditorInterface
 
 
@@ -13,7 +15,7 @@ func get_importer_name():
 
 
 func get_visible_name():
-	return "SpriteFrames"
+	return VISIBLE_NAME
 
 
 func get_recognized_extensions():
@@ -30,7 +32,7 @@ func get_resource_type():
 
 
 func get_import_options(_preset):
-	return [{"name": "animation_fps", "default_value": 6}]
+	return []
 
 
 func get_option_visibility(_option, _options):
@@ -41,7 +43,14 @@ func get_preset_count():
 	return 0
 
 
-func import(source_file, save_path, options, _r_platform_variants, r_gen_files):
+func get_priority() -> float:
+	var default_import_type: String = ProjectSettings.get_setting("pixelorama/default_import_type")
+	if default_import_type == get_visible_name():
+		return 2.0
+	return 1.0
+
+
+func import(source_file, save_path, _options, _r_platform_variants, r_gen_files):
 	"""
 	Main import function. Reads the Pixelorama project and creates the SpriteFrames resource
 	"""
@@ -78,7 +87,7 @@ func import(source_file, save_path, options, _r_platform_variants, r_gen_files):
 
 	for tag in project.tags:
 		frames.add_animation(tag.name)
-		frames.set_animation_speed(tag.name, options.animation_fps)
+		frames.set_animation_speed(tag.name, project.fps)
 
 		for frame in range(tag.from, tag.to + 1):
 			var image_rect := Rect2(Vector2((frame - 1) * frame_size.x, 0), frame_size)

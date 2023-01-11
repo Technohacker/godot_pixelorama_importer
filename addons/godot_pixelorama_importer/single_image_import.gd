@@ -1,13 +1,15 @@
 tool
 extends EditorImportPlugin
 
+const VISIBLE_NAME := "Single Image"
+
 
 func get_importer_name():
 	return "com.technohacker.pixelorama"
 
 
 func get_visible_name():
-	return "Single Image"
+	return VISIBLE_NAME
 
 
 func get_recognized_extensions():
@@ -33,6 +35,13 @@ func get_option_visibility(_option, _options):
 
 func get_preset_count():
 	return 0
+
+
+func get_priority() -> float:
+	var default_import_type: String = ProjectSettings.get_setting("pixelorama/default_import_type")
+	if default_import_type == get_visible_name():
+		return 2.0
+	return 1.0
 
 
 func import(source_file, save_path, _options, _r_platform_variants, _r_gen_files):

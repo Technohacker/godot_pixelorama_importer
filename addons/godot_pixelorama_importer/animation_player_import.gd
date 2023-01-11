@@ -22,7 +22,6 @@ func get_recognized_extensions():
 	return ["pxo"]
 
 
-# We save directly to stex because ImageTexture doesn't work for some reason
 func get_save_extension():
 	return "tscn"
 
@@ -44,11 +43,11 @@ func get_import_options(_preset):
 		{"name": "Sprite2D", "default_value": false, "usage": PROPERTY_USAGE_GROUP},
 		{"name": "scale", "default_value": default_scale},
 		{"name": "Animation", "default_value": false, "usage": PROPERTY_USAGE_GROUP},
-		# 65536 = PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED, but not exported in GDscript.
+		# (1 << 16) = PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED, but not exported in GDscript.
 		{
 			"name": "external_save",
 			"default_value": default_external_save,
-			"usage": PROPERTY_USAGE_DEFAULT | 65536
+			"usage": PROPERTY_USAGE_DEFAULT | (1 << 16)
 		},
 		{
 			"name": "external_save_path",

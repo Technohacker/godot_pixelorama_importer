@@ -1,6 +1,8 @@
 @tool
 extends EditorImportPlugin
 
+const VISIBLE_NAME := "SpriteFrames"
+
 var editor: EditorInterface
 
 
@@ -13,7 +15,7 @@ func _get_importer_name() -> String:
 
 
 func _get_visible_name() -> String:
-	return "SpriteFrames"
+	return VISIBLE_NAME
 
 
 func _get_recognized_extensions() -> PackedStringArray:
@@ -29,16 +31,12 @@ func _get_resource_type() -> String:
 	return "SpriteFrames"
 
 
-func _get_priority() -> float:
-	return 1.0
-
-
 func _get_import_order() -> int:
 	return 1
 
 
 func _get_import_options(_path: String, _preset_index: int) -> Array[Dictionary]:
-	return [{"name": "animation_fps", "default_value": 6}]
+	return []
 
 
 func _get_option_visibility(_path: String, _option_name: StringName, _options: Dictionary) -> bool:
@@ -47,6 +45,13 @@ func _get_option_visibility(_path: String, _option_name: StringName, _options: D
 
 func _get_preset_count() -> int:
 	return 0
+
+
+func _get_priority() -> float:
+	var default_import_type: String = ProjectSettings.get_setting("pixelorama/default_import_type")
+	if default_import_type == _get_visible_name():
+		return 2.0
+	return 1.0
 
 
 func _import(
@@ -92,7 +97,7 @@ func _import(
 
 	for tag in project.tags:
 		frames.add_animation(tag.name)
-		frames.set_animation_speed(tag.name, options.animation_fps)
+		frames.set_animation_speed(tag.name, project.fps)
 
 		for frame in range(tag.from, tag.to + 1):
 			var image_rect := Rect2i(Vector2((frame - 1) * frame_size.x, 0), frame_size)

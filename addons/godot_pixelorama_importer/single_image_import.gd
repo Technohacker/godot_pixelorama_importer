@@ -1,13 +1,15 @@
 @tool
 extends EditorImportPlugin
 
+const VISIBLE_NAME := "Single Image"
+
 
 func _get_importer_name() -> String:
 	return "com.technohacker.pixelorama"
 
 
 func _get_visible_name() -> String:
-	return "Single Image"
+	return VISIBLE_NAME
 
 
 func _get_recognized_extensions() -> PackedStringArray:
@@ -21,10 +23,6 @@ func _get_save_extension() -> String:
 
 func _get_resource_type() -> String:
 	return "CompressedTexture2D"
-
-
-func _get_priority() -> float:
-	return 1.0
 
 
 func _get_import_order() -> int:
@@ -41,6 +39,13 @@ func _get_option_visibility(_path: String, _option_name: StringName, _options: D
 
 func _get_preset_count() -> int:
 	return 0
+
+
+func _get_priority() -> float:
+	var default_import_type: String = ProjectSettings.get_setting("pixelorama/default_import_type")
+	if default_import_type == _get_visible_name():
+		return 2.0
+	return 1.0
 
 
 func _import(

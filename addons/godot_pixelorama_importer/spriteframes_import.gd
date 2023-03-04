@@ -57,10 +57,10 @@ func _get_priority() -> float:
 func _import(
 	source_file: String,
 	save_path: String,
-	options: Dictionary,
+	_options: Dictionary,
 	_platform_variants: Array[String],
 	gen_files: Array[String]
-) -> int:
+) -> Error:
 	"""
 	Main import function. Reads the Pixelorama project and creates the SpriteFrames resource
 	"""

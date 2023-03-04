@@ -54,7 +54,7 @@ func _import(
 	_options: Dictionary,
 	_platform_variants: Array[String],
 	_gen_files: Array[String]
-) -> int:
+) -> Error:
 	"""
 	Main import function. Reads the Pixelorama project and extracts the PNG image from it
 	"""

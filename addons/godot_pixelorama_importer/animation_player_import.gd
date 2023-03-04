@@ -34,7 +34,7 @@ func _get_import_order() -> int:
 	return 1
 
 
-func _get_import_options(path: String, preset_index: int) -> Array: #TODO path
+func _get_import_options(path: String, _preset_index: int) -> Array:
 	var default_scale: Vector2 = ProjectSettings.get_setting("pixelorama/default_scale")
 	var default_external_save: bool = ProjectSettings.get_setting(
 		"pixelorama/default_animation_external_save"
@@ -53,7 +53,7 @@ func _get_import_options(path: String, preset_index: int) -> Array: #TODO path
 		{
 			"name": "external_save",
 			"default_value": default_external_save,
-			"usage": PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED 
+			"usage": PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED
 		},
 		{
 			"name": "external_save_path",
@@ -63,7 +63,7 @@ func _get_import_options(path: String, preset_index: int) -> Array: #TODO path
 	]
 
 
-func _get_option_visibility(path: String, option_name: StringName, options: Dictionary) -> bool:
+func _get_option_visibility(_path: String, option_name: StringName, options: Dictionary) -> bool:
 	if option_name == "external_save_path" and options.has("external_save"):
 		return options["external_save"]
 	return true
@@ -80,7 +80,13 @@ func _get_priority() -> float:
 	return 1.0
 
 
-func _import(source_file: String, save_path: String, options: Dictionary, platform_variants: Array, gen_files: Array) -> int:
+func _import(
+	source_file: String,
+	save_path: String,
+	options: Dictionary,
+	_platform_variants: Array[String],
+	gen_files: Array[String]
+) -> Error:
 	"""
 	Main import function. Reads the Pixelorama project and creates the animation player resource
 	"""
@@ -131,7 +137,10 @@ func _import(source_file: String, save_path: String, options: Dictionary, platfo
 		var base_dir = options.external_save_path
 		if base_dir == "":
 			base_dir = source_file.get_file().get_base_dir()
-		animation_library_path = "%s%s-animations.tres" % [options.external_save_path, source_file.get_file().get_basename()]
+		animation_library_path = (
+			"%s%s-animations.tres"
+			% [options.external_save_path, source_file.get_file().get_basename()]
+		)
 		if FileAccess.file_exists(animation_library_path):
 			# in case the AnimationLibrary is already save, try to load it
 			animation_library = load(animation_library_path)
@@ -141,7 +150,7 @@ func _import(source_file: String, save_path: String, options: Dictionary, platfo
 	else:
 		animation_library = AnimationLibrary.new()
 	animation_player.add_animation_library("", animation_library)
-	
+
 	# import all animations
 	for tag in project.tags:
 		var animation: Animation

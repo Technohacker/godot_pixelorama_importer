@@ -49,11 +49,8 @@ static func read_pxo_file(source_file: String, image_save_path: String):
 
 			if project.layers[layer].visible and opacity > 0.0:
 				# Load the cel image
-				var cel_img = (
-					Image
-					. create_from_data(
-						size.x, size.y, false, Image.FORMAT_RGBA8, file.get_buffer(cel_data_size)
-					)
+				var cel_img = Image.create_from_data(
+					size.x, size.y, false, Image.FORMAT_RGBA8, file.get_buffer(cel_data_size)
 				)
 
 				if opacity < 1.0:

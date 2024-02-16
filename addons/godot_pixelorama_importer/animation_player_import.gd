@@ -137,10 +137,11 @@ func _import(
 		var base_dir = options.external_save_path
 		if base_dir == "":
 			base_dir = source_file.get_file().get_base_dir()
-		animation_library_path = (
-			"%s%s-animations.tres"
-			% [options.external_save_path, source_file.get_file().get_basename()]
+		var animation_library_file = (
+			"%s-animations.tres"
+			% source_file.get_file().get_basename()
 		)
+		animation_library_path = base_dir.path_join(animation_library_file)
 		if FileAccess.file_exists(animation_library_path):
 			# in case the AnimationLibrary is already save, try to load it
 			animation_library = load(animation_library_path)

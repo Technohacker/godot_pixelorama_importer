@@ -169,6 +169,7 @@ func _import(
 		track_index = animation.add_track(Animation.TYPE_VALUE)
 		animation.track_set_path(track_index, ".:frame")
 		animation.track_set_interpolation_loop_wrap(track_index, false)
+		animation.value_track_set_update_mode (track_index, Animation.UPDATE_DISCRETE)
 
 		# insert the new animation keys
 		var time := 0.0
